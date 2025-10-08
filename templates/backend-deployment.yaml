@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.28
+        command: ['sh', '-c', 'until nslookup postgres; do echo waiting for postgres; sleep 2; done;']
+      containers:
+      - name: backend
+        image: leonamvasquez/backend
+        ports:
+        - containerPort: 5000
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+          requests:
+            cpu: "250m"
+            memory: "128Mi"
+        env:
+        - name: FLASK_APP
+          value: "run.py"
+        - name: FLASK_DB_TYPE
+          value: "postgres"
+        - name: FLASK_DB_USER
+          value: "myuser"
+        - name: FLASK_DB_PASSWORD
+          value: "mypassword"
+        - name: FLASK_DB_NAME
+          value: "mydatabase"
+        - name: FLASK_DB_HOST
+          value: "postgres"
+        - name: FLASK_DB_PORT
+          value: "5432"
